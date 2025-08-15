@@ -18,6 +18,10 @@ Puedes verificarlo con:
 
 - node -v
 - npm -v
+  
+## correrlo usando docker (Verificar que los puerto no esten en uso, usar el comando dependiendo de la version docker)
+- docker-compose up -d (Version antigua)
+- docker compose up -d (Version reciente)
 
 ## correrlo en localhost (Backend)
 
