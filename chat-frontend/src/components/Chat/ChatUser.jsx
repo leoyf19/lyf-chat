@@ -1,4 +1,4 @@
-function ChatUser({ chats, onSelectChat }) {
+function ChatUser({ chats, onSelectChat, usernameLogged }) {
   return (
     <>
       <div className="px-3 bg-dark text-white">
@@ -16,23 +16,24 @@ function ChatUser({ chats, onSelectChat }) {
             className="list-group list-group-flush overflow-auto scroll-styled"
             style={{ height: "20em" }}
           >
-            {chats.map((chat) => {
+            {chats.map((chat, index) => {
               return (
                 <li
                   key={chat.user.id}
                   className="list-group-item bg-dark text-white d-flex align-items-center border-0 border-bottom"
                   role="button"
-                  onClick={() => onSelectChat(chat)}
+                  onClick={() => onSelectChat(index)}
                 >
                   <div className="flex-grow-1">
-                    <div className="fw-bold">
-                      {chat.user.username + " "}
-                      <span
-                        className={`rounded-circle me-2 online-dot bg-success`}
-                      ></span>
-                    </div>
+                    <div className="fw-bold">{chat.user.username}</div>
                   </div>
-                  {/* <span className="badge text-bg-primary rounded-pill">2</span> */}
+                  {chat.messages.filter(
+                    (m) => !m.view && m.from !== usernameLogged
+                  ).length > 0 && (
+                    <span className="badge text-bg-primary rounded-pill">
+                      {chat.messages.filter((m) => !m.view).length}
+                    </span>
+                  )}
                 </li>
               );
             })}

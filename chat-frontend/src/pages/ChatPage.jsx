@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import OnlineUser from "../components/Chat/OnlineUser";
 import Chat from "../components/Chat/Chat";
 import ChatUser from "../components/Chat/ChatUser";
 import Header from "../components/Chat/Header";
 import { io } from "socket.io-client";
+import Swal from "sweetalert2";
 
 let socket;
 function ChatPage({ username, onLoggout }) {
   const [online, setOnline] = useState(false);
 
   const [users, setUsers] = useState([]);
+
+  const [isTyping, setIsTyping] = useState(false);
+
+  const [indexChatSelected, setIndexChatSelected] = useState(null);
 
   const [chats, setChats] = useState(() => {
     const savedChats = localStorage.getItem("chats");
@@ -20,14 +25,22 @@ function ChatPage({ username, onLoggout }) {
     localStorage.setItem("chats", JSON.stringify(chats));
   }, [chats]);
 
-  const [chatSelected, setChatSelected] = useState(null);
-
   useEffect(() => {
     socket = io("http://localhost:3000", {
       auth: {
         username,
       },
-    }); // Se conecta solo una vez
+    });
+
+    socket.on("already_connect", (err) => {
+      console.error("Error de conexión:", err);
+      Swal.fire({
+        title: "Error",
+        text: err.message,
+        icon: "error",
+      });
+      onLoggout();
+    });
 
     // Evento al conectar
     socket.on("connect", () => {
@@ -43,21 +56,62 @@ function ChatPage({ username, onLoggout }) {
       setUsers(data);
     });
 
+    socket.on("new-message", ({ message, from }) => {
+      setChats((prevChats) => {
+        const existingChatIndex = prevChats.findIndex(
+          (chat) => chat.user.username === from
+        );
+
+        if (existingChatIndex !== -1) {
+          const updatedChats = [...prevChats];
+          updatedChats[existingChatIndex] = {
+            ...updatedChats[existingChatIndex],
+            messages: [...updatedChats[existingChatIndex].messages, message],
+          };
+          return updatedChats;
+        } else {
+          return [
+            ...prevChats,
+            {
+              user: {
+                username: from,
+              },
+              messages: [message],
+            },
+          ];
+        }
+      });
+    });
+
+    socket.on("typing", (data) => {
+      const existingChatIndex = chats.findIndex(
+        (chat) => chat.user.username === data.from
+      );
+
+      if (existingChatIndex !== -1) {
+        if (data.from === chats[existingChatIndex].user.username) {
+          setIsTyping(true);
+
+          // Quitar "typing" después de un tiempo sin actividad
+          setTimeout(() => setIsTyping(false), 1000);
+        }
+      }
+    });
+
     return () => {
       socket.disconnect(); // Limpia al desmontar
     };
   }, []);
 
   // Seleccionar un chat en especifico
-  const selectChat = (chat) => {
-    setChatSelected(chat);
+  const selectChat = (index) => {
+    setIndexChatSelected(index);
   };
 
   const back = () => {
-    setChatSelected(null);
+    setIndexChatSelected(null);
   };
 
-  //Crear un chat al tocar un usuario activo
   const createChat = (user) => {
     if (
       chats.some((chat) => chat.user.username === user.username) ||
@@ -75,7 +129,41 @@ function ChatPage({ username, onLoggout }) {
     ]);
   };
 
-  const sendMessage = () => {};
+  const sendMessage = (msg) => {
+    socket.emit("send-message", {
+      roomId: msg.to,
+      from: username,
+      message: msg,
+    });
+
+    setChats((prevChats) =>
+      prevChats.map((chat) =>
+        chat.user.username === msg.to
+          ? {
+              ...chat,
+              messages: [...chat.messages, msg],
+            }
+          : chat
+      )
+    );
+  };
+
+  const updateView = (usernameToUpdate, updatedMessages) => {
+    setChats((prevChats) =>
+      prevChats.map((chat) =>
+        chat.user.username === usernameToUpdate
+          ? { ...chat, messages: updatedMessages }
+          : chat
+      )
+    );
+  };
+
+  const handleTyping = () => {
+    socket.emit("typing", {
+      to: chats[indexChatSelected].user.username,
+      from: username,
+    });
+  };
 
   return (
     <div className="container">
@@ -91,13 +179,22 @@ function ChatPage({ username, onLoggout }) {
           />
         </div>
         <div className="col-4 border rounded-4 bg-dark border-dark">
-          <ChatUser chats={chats} onSelectChat={selectChat} />
+          <ChatUser
+            chats={chats}
+            onSelectChat={selectChat}
+            usernameLogged={username}
+          />
         </div>
         <div className="col-4 border rounded-4 bg-dark border-dark">
           <Chat
-            chatSelected={chatSelected}
-            onBack={back}
+            index={indexChatSelected}
+            chatSelected={chats[indexChatSelected]}
             usernameLogged={username}
+            isTyping={isTyping}
+            onBack={back}
+            onSendMessage={sendMessage}
+            onUpdateView={updateView}
+            onHandleTyping={handleTyping}
           />
         </div>
       </div>

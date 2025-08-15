@@ -1,4 +1,11 @@
-function OutgoingMessage() {
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+
+function OutgoingMessage({ content, date }) {
+  const formattedDate = date
+    ? format(new Date(date), "dd/MM/yyyy HH:mm", { locale: es })
+    : "";
+
   return (
     <>
       <div className="d-flex justify-content-end mb-3">
@@ -10,12 +17,12 @@ function OutgoingMessage() {
             wordBreak: "break-word",
           }}
         >
-          Bien, ¿y tú?
+          {content}
           <div
             className="small text-white-70 mt-1"
             style={{ fontSize: "0.75rem" }}
           >
-            10:31 AM
+            {formattedDate}
           </div>
         </div>
       </div>
