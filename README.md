@@ -5,7 +5,7 @@ Este proyecto consta de dos partes:
 - **Backend:** [NestJS](https://nestjs.com/) (carpeta `chat-backend`)
 - **Frontend:** [React](https://react.dev/) (carpeta `chat-frontend`)
 
-## 📦 Requisitos previos
+## Requisitos previos
 
 Asegúrate de tener instalado:
 
@@ -19,7 +19,7 @@ Puedes verificarlo con:
 - node -v
 - npm -v
 
-## 📦 correrlo en localhost (Backend)
+## correrlo en localhost (Backend)
 
 - cd chat-backend
 - npm install
@@ -32,7 +32,7 @@ Puedes verificarlo con:
 
 - http://localhost:3000
 
-## 📦 correrlo en localhost (Frontend)
+## correrlo en localhost (Frontend)
 
 - cd chat-frontend
 - npm install
