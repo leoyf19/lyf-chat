@@ -1,0 +1,18 @@
+services:
+  chat-backend:
+    build:
+      context: .
+      dockerfile: .docker/backend/Dockerfile
+    container_name: chat-backend
+    restart: always
+    ports:
+      - "3000:3000"
+
+  chat-frontend:
+    build:
+      context: .
+      dockerfile: .docker/frontend/Dockerfile
+    container_name: chat-frontend
+    restart: always
+    ports:
+      - "80:5173"
