@@ -26,7 +26,7 @@ function ChatPage({ username, onLoggout }) {
   }, [chats]);
 
   useEffect(() => {
-    socket = io("http://localhost:3000", {
+    socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:3000", {
       auth: {
         username,
       },
@@ -92,18 +92,16 @@ function ChatPage({ username, onLoggout }) {
         if (data.from === chats[existingChatIndex].user.username) {
           setIsTyping(true);
 
-          // Quitar "typing" después de un tiempo sin actividad
           setTimeout(() => setIsTyping(false), 1000);
         }
       }
     });
 
     return () => {
-      socket.disconnect(); // Limpia al desmontar
+      socket.disconnect();
     };
   }, []);
 
-  // Seleccionar un chat en especifico
   const selectChat = (index) => {
     setIndexChatSelected(index);
   };
