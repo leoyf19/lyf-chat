@@ -45,6 +45,6 @@ Puedes verificarlo con:
 
 - npm run dev
 
-## El backend quedará disponible en:
+## El frontend quedará disponible en:
 
 - http://localhost:5173
